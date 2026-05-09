@@ -7,7 +7,7 @@ CREATE TRIGGER trg_exhibition_dates_update
 BEFORE UPDATE ON Exhibition
 FOR EACH ROW
 BEGIN
-    IF NEW.end_date <= NEW.start_date THEN
+    IF NEW.endDate <= NEW.startDate THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Erreur : la date de fin doit être postérieure à la date de début.';
     END IF;
@@ -39,6 +39,7 @@ END$$
 -- TRIGGER 3 : Tracer toute modification d'une exposition dans une table d'audit pour assurer l'historique.
 -- Table d'audit créée si elle n'existe pas encore
 
+
 CREATE TABLE IF NOT EXISTS ExhibitionAudit (
     id_audit        INT PRIMARY KEY AUTO_INCREMENT,
     id_exhibition   INT,
@@ -55,18 +56,17 @@ CREATE TRIGGER trg_exhibition_audit
 AFTER UPDATE ON Exhibition
 FOR EACH ROW
 BEGIN
-    IF OLD.title      <> NEW.title      OR
-       OLD.start_date <> NEW.start_date OR
-       OLD.end_date   <> NEW.end_date   THEN
-
+    IF OLD.title     <> NEW.title     OR             
+       OLD.startDate <> NEW.startDate OR
+       OLD.endDate   <> NEW.endDate   THEN
         INSERT INTO ExhibitionAudit
-            (id_exhibition, old_title, new_title,
+            (id_exhibition, old_title,  new_title,
              old_start_date, new_start_date,
              old_end_date,   new_end_date)
         VALUES
-            (OLD.id_exhibition, OLD.title, NEW.title,
-             OLD.start_date, NEW.start_date,
-             OLD.end_date,   NEW.end_date);
+            (OLD.id_exhibition, OLD.title, NEW.title, 
+             OLD.startDate, NEW.startDate,             
+             OLD.endDate,   NEW.endDate);
     END IF;
 END$$
 
