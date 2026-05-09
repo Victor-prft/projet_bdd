@@ -1,5 +1,6 @@
 USE artconnect;
 
+DELIMITER $$
 -- PROCÉDURE 1 : Créer un workshop et inscrire automatiquement l'instructeur (artiste) comme premier participant, Atomicité – si l'insertion du workshop échoue,l'inscription de l'instructeur n'a pas lieu.
 
 CREATE PROCEDURE sp_create_workshop_with_instructor(
@@ -10,8 +11,7 @@ CREATE PROCEDURE sp_create_workshop_with_instructor(
     IN p_price           DECIMAL(10,2),
     IN p_location        VARCHAR(255),
     IN p_description     TEXT,
-    IN p_level           VARCHAR(50),
-    IN p_instructor_id   INT,   -- FK → Artist.id_artist
+    IN p_level           ENUM('beginner','intermediate','advanced'),
     IN p_member_id       INT    -- FK → CommunityMember.id_member (même personne)
 )
 BEGIN
@@ -24,18 +24,18 @@ BEGIN
 
     START TRANSACTION;
 
-        INSERT INTO Workshop
-            (title, date_time, duration_minutes, max_participants,
-             price, location, description, level, id_instructor)
+        INSERT INTO workshop
+            (title, dateTime, duration_minutes, max_participants,
+             price, id_location, description, level)
         VALUES
             (p_title, p_date_time, p_duration, p_max_part,
-             p_price, p_location, p_description, p_level, p_instructor_id);
+             p_price, p_location, p_description, p_level);
 
         SET v_new_workshop_id = LAST_INSERT_ID();
 
         -- Inscription automatique de l'instructeur comme participant
-        INSERT INTO Booking (booking_date, payment_status, id_workshop, id_member)
-        VALUES (CURDATE(), 'CONFIRMED', v_new_workshop_id, p_member_id);
+        INSERT INTO Booking (id_member, id_workshop, bookingDate, paymentStatus)
+        VALUES (p_member_id, v_new_workshop_id, CURDATE(), 'PAID');
 
     COMMIT;
 
@@ -54,21 +54,22 @@ BEGIN
     DECLARE v_count INT;
 
     SELECT max_participants INTO v_max
-    FROM   Workshop
+    FROM   workshop
     WHERE  id_workshop = p_workshop_id;
 
     IF v_max IS NULL THEN
         SET p_message = 'Erreur : workshop introuvable.';
     ELSE
         SELECT COUNT(*) INTO v_count
-        FROM   Booking
-        WHERE  id_workshop = p_workshop_id;
+        FROM   booking
+        WHERE  id_workshop = p_workshop_id
+			AND paymentStatus != 'CANCELLED';
 
         IF v_count >= v_max THEN
             SET p_message = 'Erreur : workshop complet.';
         ELSE
-            INSERT INTO Booking (booking_date, payment_status, id_workshop, id_member)
-            VALUES (CURDATE(), 'PENDING', p_workshop_id, p_member_id);
+            INSERT INTO booking (id_member, id_workshop, bookingDate, paymentStatus)
+            VALUES (p_member_id, p_workshop_id, CURDATE(), 'PENDING');
 
             SET p_message = CONCAT('Succès : réservation créée (id=', LAST_INSERT_ID(), ').');
         END IF;
@@ -86,8 +87,8 @@ CREATE PROCEDURE sp_add_artwork_to_exhibition(
 BEGIN
     DECLARE v_end_date DATE;
 
-    SELECT end_date INTO v_end_date
-    FROM   Exhibition
+    SELECT endDate INTO v_end_date
+    FROM   exhibition
     WHERE  id_exhibition = p_exhibition_id;
 
     IF v_end_date IS NULL THEN
@@ -96,8 +97,8 @@ BEGIN
         SET p_message = 'Erreur : l\'exposition est déjà terminée.';
     ELSE
         -- INSERT IGNORE évite le doublon (PK composite)
-        INSERT IGNORE INTO ExhibitionArtwork (id_exhibition, id_artwork)
-        VALUES (p_exhibition_id, p_artwork_id);
+        INSERT IGNORE INTO exhibited (id_artwork, id_exhibition)
+        VALUES (p_artwork_id, p_exhibition_id);
 
         IF ROW_COUNT() = 0 THEN
             SET p_message = 'Info : œuvre déjà présente dans cette exposition.';
