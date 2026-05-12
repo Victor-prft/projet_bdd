@@ -25,7 +25,7 @@ public class DiscoverController {
         // Collect some exhibitions from galleries
         List<Exhibition> featuredExhibitions = new ArrayList<>();
         for (Gallery g : galleryService.getAllGalleries()) {
-            featuredExhibitions.addAll(g.getExhibitions());
+            featuredExhibitions.addAll(galleryService.getExhibitionsByGallery(g));
             if (featuredExhibitions.size() >= 3)
                 break;
         }

@@ -162,6 +162,7 @@ public class JdbcArtworkDao implements ArtworkDao {
         w.setTitle(rs.getString("title"));
         w.setCreationYear(rs.getObject("creationYear", Integer.class));
         w.setMedium(rs.getString("medium"));
+        w.setType(rs.getString("medium")); // colonne medium → champ type (affiché dans l'UI)
         w.setDescription(rs.getString("description"));
         w.setPrice(rs.getDouble("price"));
         String statusStr = rs.getString("status");
