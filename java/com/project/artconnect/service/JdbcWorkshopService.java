@@ -1,4 +1,4 @@
-package com.project.artconnect.service.impl;
+package com.project.artconnect.service;
 
 import com.project.artconnect.model.Booking;
 import com.project.artconnect.model.CommunityMember;
@@ -7,7 +7,10 @@ import com.project.artconnect.persistence.JdbcWorkshopDao;
 import com.project.artconnect.service.WorkshopService;
 import com.project.artconnect.util.ConnectionManager;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

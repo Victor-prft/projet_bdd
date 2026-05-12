@@ -1,9 +1,8 @@
-package com.project.artconnect.service.impl;
+package com.project.artconnect.service;
 
 import com.project.artconnect.model.Artist;
 import com.project.artconnect.model.Discipline;
 import com.project.artconnect.persistence.JdbcArtistDao;
-import com.project.artconnect.service.ArtistService;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
  * Implémentation de ArtistService connectée à la base via JdbcArtistDao.
  * Remplace InMemoryArtistService dans ServiceProvider.
  */
-public class JdbcArtistService implements ArtistService {
+public class ArtistService implements ArtistService {
 
     private final JdbcArtistDao artistDao = new JdbcArtistDao();
 

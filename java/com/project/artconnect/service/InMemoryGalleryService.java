@@ -1,4 +1,4 @@
-package com.project.artconnect.service.impl;
+package com.project.artconnect.service;
 
 import com.project.artconnect.model.Gallery;
 import com.project.artconnect.model.Exhibition;
