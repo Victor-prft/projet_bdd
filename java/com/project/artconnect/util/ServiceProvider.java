@@ -1,7 +1,6 @@
 package com.project.artconnect.util;
 
 import com.project.artconnect.service.*;
-import com.project.artconnect.service.impl.*;
 
 /**
  * Service Provider to manage singleton instances of services and handle their

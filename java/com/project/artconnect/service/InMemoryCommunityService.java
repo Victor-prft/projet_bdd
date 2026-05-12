@@ -1,4 +1,4 @@
-package com.project.artconnect.service.impl;
+package com.project.artconnect.service;
 
 import com.project.artconnect.model.CommunityMember;
 import com.project.artconnect.model.Review;
