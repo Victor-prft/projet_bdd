@@ -1,26 +1,45 @@
 package com.project.artconnect.model;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+
+import com.project.artconnect.model.Location;
 
 public class Workshop {
+    private Integer id_workshop;
     private String title;
-    private LocalDateTime date;
+    private LocalDateTime dateTime;
     private int durationMinutes;
     private int maxParticipants;
-    private double price;
+    private BigDecimal price;
     private Artist instructor;
-    private String location;
+    private Location location;
     private String description;
-    private String level; // beginner, intermediate, advanced
+    private Level level; // beginner, intermediate, advanced
+
+    public enum Level {
+        BEGINNER, INTERMEDIATE, ADVANCED
+    }
 
     public Workshop() {
     }
 
-    public Workshop(String title, LocalDateTime date, Artist instructor, double price) {
+    public Workshop(String title, LocalDateTime dateTime, BigDecimal price, int maxParticipants,
+                int durationMinutes, Level level, Location location) {
         this.title = title;
-        this.date = date;
-        this.instructor = instructor;
+        this.dateTime = dateTime;
         this.price = price;
+        this.maxParticipants = maxParticipants;
+        this.level = level;
+        this.location = location;
+    }
+
+    public Integer getId_workshop() {
+        return id_workshop;
+    }
+
+    public void setId_workshop(Integer id_workshop) {
+        this.id_workshop = id_workshop;
     }
 
     public String getTitle() {
@@ -31,12 +50,12 @@ public class Workshop {
         this.title = title;
     }
 
-    public LocalDateTime getDate() {
-        return date;
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
     }
 
     public int getDurationMinutes() {
@@ -55,11 +74,11 @@ public class Workshop {
         this.maxParticipants = maxParticipants;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -71,11 +90,11 @@ public class Workshop {
         this.instructor = instructor;
     }
 
-    public String getLocation() {
+    public Location getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(Location location) {
         this.location = location;
     }
 
@@ -87,11 +106,11 @@ public class Workshop {
         this.description = description;
     }
 
-    public String getLevel() {
+    public Level getLevel() {
         return level;
     }
 
-    public void setLevel(String level) {
+    public void setLevel(Level level) {
         this.level = level;
     }
 
