@@ -1,93 +1,78 @@
 USE artconnect;
 
--- On supprime la procédure si elle existe déjà pour éviter les conflits
-DROP PROCEDURE IF EXISTS inscrire_workshops;
+-- =============================================
+-- SCÉNARIO 1 : Inscription atomique d'un nouveau membre à plusieurs workshops
+-- Atomicité : si l'une des inscriptions échoue (workshop complet, doublon, etc.),
+--             toutes les opérations sont annulées (ROLLBACK), y compris la création du membre.
+-- =============================================
 
-DELIMITER $$
+START TRANSACTION;
 
-CREATE PROCEDURE inscrire_workshops(IN p_member INT)
-BEGIN
-    -- Variables pour stocker le nombre d'inscriptions et les capacités max
-    DECLARE nb1 INT;
-    DECLARE max1 INT;
-    DECLARE nb2 INT;
-    DECLARE max2 INT;
+    -- Étape 1 : Créer le nouveau membre
+    INSERT INTO community_member (name, email, birthYear, phone, membershipType, id_city)
+    VALUES ('Lucie Martin', 'lucie.martin@test.fr', 1995, '+33 6 12 34 56 78', 'premium', 1);
 
-    -- Début de la transaction pour garantir l'atomicité
-    START TRANSACTION;
+    SET @new_member_id = LAST_INSERT_ID();
 
-    -- =========================
-    -- Vérification workshop 1
-    -- =========================
+    -- Étape 2 : Inscrire ce membre à trois workshops
+    INSERT INTO booking (id_member, id_workshop, bookingDate, paymentStatus)
+    VALUES (@new_member_id, 1, CURDATE(), 'PAID');
 
-    -- Nombre de participants déjà inscrits (hors annulés)
-    SELECT COUNT(*) INTO nb1
-    FROM booking
-    WHERE id_workshop = 1 AND paymentStatus != 'CANCELLED';
+    INSERT INTO booking (id_member, id_workshop, bookingDate, paymentStatus)
+    VALUES (@new_member_id, 3, CURDATE(), 'PAID');
 
-    -- Capacité maximale du workshop 1
-    SELECT max_participants INTO max1
-    FROM workshop
-    WHERE id_workshop = 1;
+    INSERT INTO booking (id_member, id_workshop, bookingDate, paymentStatus)
+    VALUES (@new_member_id, 5, CURDATE(), 'PENDING');
 
-    -- =========================
-    -- Vérification workshop 2
-    -- =========================
+COMMIT;
 
-    -- Nombre de participants déjà inscrits (hors annulés)
-    SELECT COUNT(*) INTO nb2
-    FROM booking
-    WHERE id_workshop = 2 AND paymentStatus != 'CANCELLED';
+-- Vérification
+SELECT cm.name, cm.email, w.title, b.paymentStatus
+FROM   booking          b
+JOIN   community_member cm ON b.id_member   = cm.id_member
+JOIN   workshop         w  ON b.id_workshop = w.id_workshop
+WHERE  cm.email = 'lucie.martin@test.fr';
 
-    -- Capacité maximale du workshop 2
-    SELECT max_participants INTO max2
-    FROM workshop
-    WHERE id_workshop = 2;
 
-    -- =========================
-    -- Vérification globale (condition d'inscription)
-    -- =========================
-    IF nb1 < max1
-       AND nb2 < max2
-       -- Vérifie que le membre n'est pas déjà inscrit au workshop 1
-       AND NOT EXISTS (
-            SELECT 1 FROM booking
-            WHERE id_member = p_member AND id_workshop = 1
-       )
-       -- Vérifie que le membre n'est pas déjà inscrit au workshop 2
-       AND NOT EXISTS (
-            SELECT 1 FROM booking
-            WHERE id_member = p_member AND id_workshop = 2
-       )
-    THEN
+-- =============================================
+-- SCÉNARIO 2 : Démonstration du ROLLBACK
+-- On insère une oeuvre et on l'annule immédiatement pour montrer l'atomicité.
+-- =============================================
 
-        -- =========================
-        -- Insertion des deux inscriptions
-        -- =========================
+START TRANSACTION;
 
-        INSERT INTO booking (id_member, id_workshop, paymentStatus)
-        VALUES (p_member, 1, 'PENDING');
+    INSERT INTO artwork (title, creationYear, medium, price, status, id_artiste)
+    VALUES ('Oeuvre test rollback', 2024, 'Huile sur toile', 500.00, 'FOR_SALE', 1);
 
-        INSERT INTO booking (id_member, id_workshop, paymentStatus)
-        VALUES (p_member, 2, 'PENDING');
+ROLLBACK; -- Annulation volontaire
 
-        -- Validation de la transaction si tout est OK
-        COMMIT;
+-- Vérification : l'oeuvre ne doit pas exister
+SELECT * FROM artwork WHERE title = 'Oeuvre test rollback';
 
-    ELSE
-        -- Annulation de toutes les opérations si une condition échoue
-        ROLLBACK;
-    END IF;
 
-END $$
+-- =============================================
+-- SCÉNARIO 3 : Transfert de réservation (annulation + nouvelle inscription)
+-- Annuler la réservation d'Alice au workshop 3 et l'inscrire au workshop 2.
+-- Les deux opérations doivent être atomiques.
+-- =============================================
 
-DELIMITER ;
+START TRANSACTION;
 
--- =========================
--- TEST DE LA PROCÉDURE
--- =========================
+    -- Annuler l'ancienne réservation
+    UPDATE booking
+    SET    paymentStatus = 'CANCELLED'
+    WHERE  id_member   = 1   -- Alice Renaud
+      AND  id_workshop = 3;
 
-CALL inscrire_workshops(8);
+    -- Créer la nouvelle réservation
+    INSERT INTO booking (id_member, id_workshop, bookingDate, paymentStatus)
+    VALUES (1, 2, CURDATE(), 'PENDING');
 
--- Vérification des inscriptions du membre 8
-SELECT * FROM booking WHERE id_member = 8;
+COMMIT;
+
+-- Vérification : réservations d'Alice
+SELECT w.title, b.paymentStatus, b.bookingDate
+FROM   booking   b
+JOIN   workshop  w ON b.id_workshop = w.id_workshop
+WHERE  b.id_member = 1
+ORDER  BY b.bookingDate DESC;

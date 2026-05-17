@@ -235,17 +235,20 @@ public class JdbcArtworkDao implements ArtworkDao {
         }
     }
 
-    @Override
-    public void removeTag(int artworkId, int tagId) {
-        String sql = "DELETE FROM tagged WHERE id_artwork = ? AND id_tag = ?";
-        try (Connection conn = ConnectionManager.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            ps.setInt(1, artworkId);
-            ps.setInt(2, tagId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Erreur removeTag artworkId=" + artworkId, e);
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+    private Artwork mapRow(ResultSet rs) throws SQLException {
+        Artwork w = new Artwork();
+        w.setTitle(rs.getString("title"));
+        w.setCreationYear(rs.getObject("creationYear", Integer.class));
+        w.setMedium(rs.getString("medium"));
+        w.setType(rs.getString("medium")); // colonne medium → champ type (affiché dans l'UI)
+        w.setDescription(rs.getString("description"));
+        w.setPrice(rs.getDouble("price"));
+        String statusStr = rs.getString("status");
+        if (statusStr != null) {
+            w.setStatus(Artwork.Status.valueOf(statusStr));
         }
     }
 

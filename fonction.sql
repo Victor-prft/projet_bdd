@@ -44,11 +44,11 @@ READS SQL DATA
 DETERMINISTIC
 BEGIN
     DECLARE v_count INT;
- 
-    SELECT COUNT(DISTINCT ea.id_artwork) INTO v_count
-    FROM   ExhibitionArtwork ea
-    JOIN   Exhibition e ON e.id_exhibition = ea.id_exhibition
+
+    SELECT COUNT(DISTINCT ex.id_artwork) INTO v_count
+    FROM   exhibited   ex
+    JOIN   exhibition  e ON e.id_exhibition = ex.id_exhibition
     WHERE  e.id_gallery = p_gallery_id;
- 
+
     RETURN IFNULL(v_count, 0);
 END$$

@@ -4,15 +4,11 @@ import com.project.artconnect.model.Exhibition;
 import com.project.artconnect.model.Gallery;
 import com.project.artconnect.persistence.JdbcExhibitionDao;
 import com.project.artconnect.persistence.JdbcGalleryDao;
-import com.project.artconnect.service.GalleryService;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Implémentation de GalleryService connectée à la base.
- */
 public class JdbcGalleryService implements GalleryService {
 
     private final JdbcGalleryDao    galleryDao    = new JdbcGalleryDao();
@@ -28,6 +24,11 @@ public class JdbcGalleryService implements GalleryService {
         return galleryDao.findAll().stream()
                 .filter(g -> g.getName().equalsIgnoreCase(name))
                 .findFirst();
+    }
+
+    @Override
+    public List<Exhibition> getAllExhibitions() {
+        return exhibitionDao.findAll();
     }
 
     @Override

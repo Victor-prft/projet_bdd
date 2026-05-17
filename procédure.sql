@@ -9,7 +9,7 @@ CREATE PROCEDURE sp_create_workshop_with_instructor(
     IN p_duration        INT,
     IN p_max_part        INT,
     IN p_price           DECIMAL(10,2),
-    IN p_location        VARCHAR(255),
+    IN p_location_id     INT,
     IN p_description     TEXT,
     IN p_level           ENUM('beginner','intermediate','advanced'),
     IN p_member_id       INT    -- FK → CommunityMember.id_member (même personne)
@@ -29,7 +29,7 @@ BEGIN
              price, id_location, description, level)
         VALUES
             (p_title, p_date_time, p_duration, p_max_part,
-             p_price, p_location, p_description, p_level);
+             p_price, p_location_id, p_description, p_level);
 
         SET v_new_workshop_id = LAST_INSERT_ID();
 

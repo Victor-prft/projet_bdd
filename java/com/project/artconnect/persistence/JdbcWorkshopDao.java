@@ -138,67 +138,37 @@ public class JdbcWorkshopDao implements WorkshopDao {
         return list;
     }
  
-
-    @Override
-    public void save(Workshop workshop) {
-        String sql = "INSERT INTO workshop (title, dateTime, max_participants, price, duration_minutes, description, level, id_location) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = ConnectionManager.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            ps.setString(1, workshop.getTitle());
-            ps.setTimestamp(2, Timestamp.valueOf(workshop.getDateTime()));
-            ps.setInt(3, workshop.getMaxParticipants());
-            ps.setBigDecimal(4, workshop.getPrice());
-            ps.setInt(5, workshop.getDurationMinutes());
-            ps.setString(6, workshop.getDescription());
-            ps.setString(7, workshop.getLevel().name());
-            ps.setInt(8, workshop.getLocation().getId());
-            ps.executeUpdate();
- 
-            ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) {
-                workshop.setId_workshop(keys.getInt(1));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erreur save workshop title=" + workshop.getTitle(), e);
-        }
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+    private String buildSelectSql() {
+        return """
+                SELECT w.id_workshop, w.title, w.dateTime, w.max_participants,
+                       w.price, w.duration_minutes, w.description, w.level,
+                       l.name AS location_name,
+                       a.name AS artist_name
+                FROM   workshop  w
+                JOIN   location  l ON w.id_location = l.id_location
+                LEFT JOIN artist a ON w.id_artiste  = a.id_artiste
+                """;
     }
  
-
-    @Override
-    public void update(Workshop workshop) {
-        String sql = "UPDATE workshop SET title=?, dateTime=?, max_participants=?, price=?, duration_minutes=?, " +
-                     "description=?, level=?, id_location=? WHERE id_workshop=?";
-        try (Connection conn = ConnectionManager.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            ps.setString(1, workshop.getTitle());
-            ps.setTimestamp(2, Timestamp.valueOf(workshop.getDateTime()));
-            ps.setInt(3, workshop.getMaxParticipants());
-            ps.setBigDecimal(4, workshop.getPrice());
-            ps.setInt(5, workshop.getDurationMinutes());
-            ps.setString(6, workshop.getDescription());
-            ps.setString(7, workshop.getLevel().name());
-            ps.setInt(8, workshop.getLocation().getId());
-            ps.setInt(9, workshop.getId_workshop());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Erreur update workshop id=" + workshop.getId_workshop(), e);
+    private Workshop mapRow(ResultSet rs) throws SQLException {
+        Workshop w = new Workshop();
+        w.setTitle(rs.getString("title"));
+        w.setDate(rs.getTimestamp("dateTime").toLocalDateTime());
+        w.setMaxParticipants(rs.getInt("max_participants"));
+        w.setPrice(rs.getDouble("price"));
+        w.setDurationMinutes(rs.getInt("duration_minutes"));
+        w.setDescription(rs.getString("description"));
+        w.setLevel(rs.getString("level"));
+        w.setLocation(rs.getString("location_name"));
+        String artistName = rs.getString("artist_name");
+        if (artistName != null) {
+            Artist instructor = new Artist();
+            instructor.setName(artistName);
+            w.setInstructor(instructor);
         }
-    }
- 
-
-    @Override
-    public void delete(int id) {
-        String sql = "DELETE FROM workshop WHERE id_workshop = ?";
-        try (Connection conn = ConnectionManager.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Erreur delete workshop id=" + id, e);
-        }
+        return w;
     }
 }

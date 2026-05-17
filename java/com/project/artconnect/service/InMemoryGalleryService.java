@@ -64,6 +64,13 @@ public class InMemoryGalleryService implements GalleryService {
     }
 
     @Override
+    public List<Exhibition> getAllExhibitions() {
+        return galleries.values().stream()
+                .flatMap(g -> g.getExhibitions().stream())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
     public List<Exhibition> getExhibitionsByGallery(Gallery gallery) {
         if (gallery == null)
             return Collections.emptyList();
