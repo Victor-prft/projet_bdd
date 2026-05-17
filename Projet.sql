@@ -139,7 +139,9 @@ CREATE TABLE workshop (
     description         TEXT,
     level               ENUM('beginner', 'intermediate', 'advanced') NOT NULL,
     id_location         INT             NOT NULL,
-    CONSTRAINT fk_workshop_location FOREIGN KEY (id_location) REFERENCES location(id_location)
+    id_artiste          INT,
+    CONSTRAINT fk_workshop_location FOREIGN KEY (id_location) REFERENCES location(id_location),
+    CONSTRAINT fk_workshop_artist   FOREIGN KEY (id_artiste)  REFERENCES artist(id_artiste)
 );
 
 -- =============================================
@@ -442,31 +444,31 @@ INSERT INTO exhibited (id_artwork, id_exhibition) VALUES
  
 
  
-INSERT INTO workshop (title, dateTime, max_participants, price, duration_minutes, description, level, id_location) VALUES
+INSERT INTO workshop (title, dateTime, max_participants, price, duration_minutes, description, level, id_location, id_artiste) VALUES
   ('Introduction à la peinture abstraite',
    '2024-04-06 10:00:00', 12, 65.00, 180,
    'Découverte des techniques de base de la peinture abstraite avec Sophie Marchand.',
-   'beginner', 1),
- 
+   'beginner', 1, 1),
+
   ('Sculpture sur matériaux recyclés',
    '2024-05-18 14:00:00', 8, 90.00, 240,
    'Atelier de sculpture avec Karim Bouras, utilisation de matériaux de récupération.',
-   'intermediate', 2),
- 
+   'intermediate', 2, 2),
+
   ('Photographie documentaire urbaine',
    '2024-07-13 09:00:00', 10, 75.00, 300,
    'Sortie terrain avec Elena Vasquez dans les quartiers de Marseille.',
-   'intermediate', 3),
- 
+   'intermediate', 3, 3),
+
   ('Gravure et impression numérique',
    '2024-10-05 10:00:00', 6, 120.00, 360,
    'Atelier avancé combinant gravure sur cuivre et retouche numérique avec Thomas Girard.',
-   'advanced', 4),
- 
+   'advanced', 4, 4),
+
   ('Art textile et broderie contemporaine',
    '2024-11-09 13:00:00', 15, 55.00, 150,
    'Introduction aux techniques textiles utilisées dans l\'œuvre de Nadia Okonkwo.',
-   'beginner', 1);
+   'beginner', 1, 5);
  
  
 INSERT INTO community_member (name, email, birthYear, phone, membershipType, id_city) VALUES

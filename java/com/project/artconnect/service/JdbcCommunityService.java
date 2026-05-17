@@ -4,7 +4,6 @@ import com.project.artconnect.model.Artwork;
 import com.project.artconnect.model.CommunityMember;
 import com.project.artconnect.model.Review;
 import com.project.artconnect.persistence.JdbcCommunityMemberDao;
-import com.project.artconnect.service.CommunityService;
 import com.project.artconnect.util.ConnectionManager;
 
 import java.sql.Connection;

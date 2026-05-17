@@ -1,7 +1,6 @@
 package com.project.artconnect.ui;
 
 import com.project.artconnect.model.Exhibition;
-import com.project.artconnect.model.Gallery;
 import com.project.artconnect.model.Workshop;
 import com.project.artconnect.service.GalleryService;
 import com.project.artconnect.service.WorkshopService;
@@ -10,8 +9,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DiscoverController {
     @FXML
@@ -22,15 +19,7 @@ public class DiscoverController {
 
     @FXML
     public void initialize() {
-        // Collect some exhibitions from galleries
-        List<Exhibition> featuredExhibitions = new ArrayList<>();
-        for (Gallery g : galleryService.getAllGalleries()) {
-            featuredExhibitions.addAll(galleryService.getExhibitionsByGallery(g));
-            if (featuredExhibitions.size() >= 3)
-                break;
-        }
-
-        featuredExhibitions.stream().limit(3).forEach(this::addExhibitionCard);
+        galleryService.getAllExhibitions().stream().limit(3).forEach(this::addExhibitionCard);
         workshopService.getAllWorkshops().stream().limit(3).forEach(this::addWorkshopCard);
     }
 

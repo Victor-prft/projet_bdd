@@ -4,7 +4,6 @@ import com.project.artconnect.model.Booking;
 import com.project.artconnect.model.CommunityMember;
 import com.project.artconnect.model.Workshop;
 import com.project.artconnect.persistence.JdbcWorkshopDao;
-import com.project.artconnect.service.WorkshopService;
 import com.project.artconnect.util.ConnectionManager;
 
 import java.sql.Connection;
@@ -125,6 +124,7 @@ public class JdbcWorkshopService implements WorkshopService {
 
                     Booking b = new Booking(w, member);
                     b.setPaymentStatus(rs.getString("paymentStatus"));
+                    b.setBookingDate(rs.getDate("bookingDate").toLocalDate().atStartOfDay());
                     bookings.add(b);
                 }
             }

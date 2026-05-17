@@ -64,9 +64,11 @@ public class JdbcWorkshopDao implements WorkshopDao {
         return """
                 SELECT w.id_workshop, w.title, w.dateTime, w.max_participants,
                        w.price, w.duration_minutes, w.description, w.level,
-                       l.name AS location_name
-                FROM   workshop w
-                JOIN   location l ON w.id_location = l.id_location
+                       l.name AS location_name,
+                       a.name AS artist_name
+                FROM   workshop  w
+                JOIN   location  l ON w.id_location = l.id_location
+                LEFT JOIN artist a ON w.id_artiste  = a.id_artiste
                 """;
     }
 
@@ -80,7 +82,12 @@ public class JdbcWorkshopDao implements WorkshopDao {
         w.setDescription(rs.getString("description"));
         w.setLevel(rs.getString("level"));
         w.setLocation(rs.getString("location_name"));
-        // Pas d'instructeur stocké directement — le modèle le permet nul
+        String artistName = rs.getString("artist_name");
+        if (artistName != null) {
+            Artist instructor = new Artist();
+            instructor.setName(artistName);
+            w.setInstructor(instructor);
+        }
         return w;
     }
 }
