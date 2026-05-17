@@ -1,106 +1,246 @@
 package com.project.artconnect.persistence;
 
+ 
 import com.project.artconnect.dao.CommunityMemberDao;
+import com.project.artconnect.model.City;
 import com.project.artconnect.model.CommunityMember;
 import com.project.artconnect.model.Discipline;
-import com.project.artconnect.util.ConnectionManager;
-
+ 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.project.artconnect.util.ConnectionManager;
+ 
+public class JdbcCommunitymemberDao implements CommunityMemberDao {
+ 
+ 
 
-/**
- * JDBC implementation of CommunityMemberDao.
- * CommunityMember.membershipType est un String ("free" / "premium") dans le modèle.
- */
-public class JdbcCommunityMemberDao implements CommunityMemberDao {
-
-    // ----------------------------------------------------------------
-    // findById
-    // ----------------------------------------------------------------
-    @Override
-    public Optional<CommunityMember> findById(Long id) {
-        String sql = buildSelectSql() + " WHERE m.id_member = ?";
-        try (Connection conn = ConnectionManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setLong(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    CommunityMember m = mapRow(rs);
-                    loadDisciplines(conn, m, id.intValue());
-                    return Optional.of(m);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erreur findById member : " + e.getMessage(), e);
-        }
-        return Optional.empty();
-    }
-
-    // ----------------------------------------------------------------
-    // findAll
-    // ----------------------------------------------------------------
-    @Override
-    public List<CommunityMember> findAll() {
-        String sql = buildSelectSql() + " ORDER BY m.name";
-        List<CommunityMember> list = new ArrayList<>();
-        try (Connection conn = ConnectionManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                CommunityMember m = mapRow(rs);
-                loadDisciplines(conn, m, rs.getInt("id_member"));
-                list.add(m);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erreur findAll members : " + e.getMessage(), e);
-        }
-        return list;
-    }
-
-    // ----------------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------------
-    private String buildSelectSql() {
-        return """
-                SELECT m.id_member, m.name, m.email, m.birthYear,
-                       m.phone, m.membershipType,
-                       c.name AS city_name
-                FROM   community_member m
-                LEFT JOIN city c ON m.id_city = c.id_city
-                """;
-    }
-
-    private CommunityMember mapRow(ResultSet rs) throws SQLException {
+    private CommunityMember mapMember(ResultSet rs) throws SQLException {
         CommunityMember m = new CommunityMember();
+        m.setId(rs.getInt("id_member"));
         m.setName(rs.getString("name"));
         m.setEmail(rs.getString("email"));
         m.setBirthYear(rs.getObject("birthYear", Integer.class));
         m.setPhone(rs.getString("phone"));
-        m.setMembershipType(rs.getString("membershipType")); // String dans le modèle
-        m.setCity(rs.getString("city_name"));
+        m.setMembershipType(CommunityMember.MembershipType.valueOf(rs.getString("membershipType")));
+ 
+        int cityId = rs.getInt("id_city");
+        if (!rs.wasNull()) {
+            City city = new City();
+            city.setId(cityId);
+            city.setName(rs.getString("city_name"));
+            city.setRegion(rs.getString("city_region"));
+            city.setCountry(rs.getString("city_country"));
+            m.setCity(city);
+        }
         return m;
     }
+ 
+    private static final String SELECT_BASE =
+            "SELECT cm.*, c.name AS city_name, c.region AS city_region, c.country AS city_country " +
+            "FROM community_member cm LEFT JOIN City c ON cm.id_city = c.id_city ";
 
-    /** Charge les disciplines préférées du membre. */
-    private void loadDisciplines(Connection conn, CommunityMember member,
-                                  int memberId) throws SQLException {
-        String sql = """
-                SELECT d.name
-                FROM   prefere    pf
-                JOIN   discipline d ON pf.id_discipline = d.id_discipline
-                WHERE  pf.id_member = ?
-                """;
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, memberId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    member.getFavoriteDisciplines().add(new Discipline(rs.getString("name")));
-                }
+    @Override
+    public Optional<CommunityMember> findById(int id_member) {
+        String sql = SELECT_BASE + "WHERE cm.id_member = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);) {
+            ps.setInt(1, id_member);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                CommunityMember m = mapMember(rs);
+                m.setFavoriteDisciplines(findFavoriteDisciplines(id_member));
+                return Optional.of(m);
             }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur findById member id=" + id_member, e);
+        }
+        return Optional.empty();
+    }
+ 
+
+    @Override
+    public List<CommunityMember> findAll() {
+        String sql = "SELECT * FROM ARTIST";
+        List<CommunityMember> list = new ArrayList<>();
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapMember(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur findAll members", e);
+        }
+        return list;
+    }
+ 
+
+    @Override
+    public Optional<CommunityMember> findByEmail(String email) {
+        String sql = SELECT_BASE + "WHERE cm.email = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            ps.setString(1, email);
+            if (rs.next()) {
+                return Optional.of(mapMember(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur findByEmail email=" + email, e);
+        }
+        return Optional.empty();
+    }
+ 
+
+    @Override
+    public List<CommunityMember> findByMembershipType(CommunityMember.MembershipType type) {
+        List<CommunityMember> list = new ArrayList<>();
+        String sql = SELECT_BASE + "WHERE cm.membershipType = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            ps.setString(1, type.name());
+            while (rs.next()) {
+                list.add(mapMember(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur findByMembershipType type=" + type, e);
+        }
+        return list;
+    }
+ 
+
+    @Override
+    public List<CommunityMember> findByCity(String cityName) {
+        List<CommunityMember> list = new ArrayList<>();
+        String sql = SELECT_BASE + "WHERE c.name = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            ps.setString(1, cityName);
+            while (rs.next()) {
+                list.add(mapMember(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur findByCity cityName=" + cityName, e);
+        }
+        return list;
+    }
+
+    @Override
+    public void save(CommunityMember member) {
+        String sql = "INSERT INTO community_member (name, email, birthYear, phone, membershipType, id_city) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = ConnectionManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, member.getName());
+            ps.setString(2, member.getEmail());
+            ps.setObject(3, member.getBirthYear());
+            ps.setString(4, member.getPhone());
+            ps.setString(5, member.getMembershipType().name());
+            if (member.getCity() != null) {
+                ps.setInt(6, member.getCity().getId());
+            } else {
+                ps.setNull(6, Types.INTEGER);
+            }
+            ps.executeUpdate();
+ 
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) {
+                member.setId(keys.getInt(1));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur save member name=" + member.getName(), e);
         }
     }
+
+    @Override
+    public void update(CommunityMember member) {
+        String sql = "UPDATE community_member SET name=?, email=?, birthYear=?, phone=?, membershipType=?, id_city=? " +
+                     "WHERE id_member=?";
+        try (Connection conn = ConnectionManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, member.getName());
+            ps.setString(2, member.getEmail());
+            ps.setObject(3, member.getBirthYear());
+            ps.setString(4, member.getPhone());
+            ps.setString(5, member.getMembershipType().name());
+            if (member.getCity() != null) {
+                ps.setInt(6, member.getCity().getId());
+            } else {
+                ps.setNull(6, Types.INTEGER);
+            }
+            ps.setInt(7, member.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur update member id=" + member.getId(), e);
+        }
+    }
+ 
+
+    @Override
+    public void delete(int id) {
+        String sql = "DELETE FROM community_member WHERE id_member = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur delete member id=" + id, e);
+        }
+    }
+ 
+
+    @Override
+    public void addFavoriteDiscipline(int memberId, int disciplineId) {
+        String sql = "INSERT IGNORE INTO prefere (id_member, id_discipline) VALUES (?, ?)";
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            ps.setInt(1, memberId);
+            ps.setInt(2, disciplineId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur addFavoriteDiscipline memberId=" + memberId, e);
+        }
+    }
+ 
+    @Override
+    public void removeFavoriteDiscipline(int memberId, int disciplineId) {
+        String sql = "DELETE FROM prefere WHERE id_member = ? AND id_discipline = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            ps.setInt(1, memberId);
+            ps.setInt(2, disciplineId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur removeFavoriteDiscipline memberId=" + memberId, e);
+        }
+    }
+ 
+    @Override
+    public List<Discipline> findFavoriteDisciplines(int memberId) {
+        List<Discipline> list = new ArrayList<>();
+        String sql = "SELECT d.id_discipline, d.name FROM discipline d " +
+                     "JOIN prefere p ON d.id_discipline = p.id_discipline " +
+                     "WHERE p.id_member = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
+            ps.setInt(1, memberId);
+            while (rs.next()) {
+                Discipline d = new Discipline(rs.getString("name"));
+                d.setId_discipline(rs.getInt("id_discipline"));
+                list.add(d);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur findFavoriteDisciplines memberId=" + memberId, e);
+        }
+        return list;
+    }
 }
+ 

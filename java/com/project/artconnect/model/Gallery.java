@@ -2,24 +2,35 @@ package com.project.artconnect.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
+
 
 public class Gallery {
+    private Integer id_gallery;
     private String name;
-    private String address;
     private String ownerName;
-    private String openingHours;
     private String contactPhone;
-    private double rating;
+    private BigDecimal rating;
     private String website;
+    private Location location;
+    private List<GalleryHours> hours = new ArrayList<>();
     private List<Exhibition> exhibitions = new ArrayList<>();
 
     public Gallery() {
     }
 
-    public Gallery(String name, String address, double rating) {
+    public Gallery(String name, Location location, BigDecimal rating) {
         this.name = name;
-        this.address = address;
+        this.location = location;
         this.rating = rating;
+    }
+
+    public Integer getId() {
+        return id_gallery;
+    }
+ 
+    public void setId(Integer id) {
+        this.id_gallery = id;
     }
 
     public String getName() {
@@ -30,13 +41,6 @@ public class Gallery {
         this.name = name;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 
     public String getOwnerName() {
         return ownerName;
@@ -46,13 +50,6 @@ public class Gallery {
         this.ownerName = ownerName;
     }
 
-    public String getOpeningHours() {
-        return openingHours;
-    }
-
-    public void setOpeningHours(String openingHours) {
-        this.openingHours = openingHours;
-    }
 
     public String getContactPhone() {
         return contactPhone;
@@ -62,11 +59,11 @@ public class Gallery {
         this.contactPhone = contactPhone;
     }
 
-    public double getRating() {
+    public BigDecimal getRating() {
         return rating;
     }
 
-    public void setRating(double rating) {
+    public void setRating(BigDecimal rating) {
         this.rating = rating;
     }
 
@@ -76,6 +73,22 @@ public class Gallery {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public List<GalleryHours> getHours() {
+        return hours;
+    }
+
+    public void setHours(List<GalleryHours> hours) {
+        this.hours = hours;
     }
 
     public List<Exhibition> getExhibitions() {
@@ -90,6 +103,13 @@ public class Gallery {
         this.exhibitions.add(exhibition);
         if (exhibition.getGallery() != this) {
             exhibition.setGallery(this);
+        }
+    }
+
+    public void addHours(GalleryHours galleryHours) {
+        this.hours.add(galleryHours);
+        if (galleryHours.getGallery() != this) {
+            galleryHours.setGallery(this);
         }
     }
 
