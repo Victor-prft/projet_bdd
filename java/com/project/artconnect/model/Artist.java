@@ -3,26 +3,28 @@ package com.project.artconnect.model;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * Artist entity representing a creator in the community.
  */
 public class Artist {
+    private Integer id_artist;
     private String name;
     private String bio;
     private Integer birthYear;
     private List<Discipline> disciplines = new ArrayList<>();
     private String contactEmail;
     private String phone;
-    private String city;
+    private City city;
     private String website;
-    private String socialMedia;
+    private List<ArtistSocial> socialMedias = new ArrayList<>();
     private boolean isActive;
     private List<Artwork> artworks = new ArrayList<>();
 
     public Artist() {
     }
 
-    public Artist(String name, String bio, Integer birthYear, String contactEmail, String city) {
+    public Artist(String name, String bio, Integer birthYear, String contactEmail, City city) {
         this.name = name;
         this.bio = bio;
         this.birthYear = birthYear;
@@ -32,6 +34,13 @@ public class Artist {
     }
 
     // Getters and Setters
+
+    public Integer getId() {
+        return id_artist;
+    }   
+    public void setId(Integer id) {
+        this.id_artist = id;
+    }
     public String getName() {
         return name;
     }
@@ -80,11 +89,11 @@ public class Artist {
         this.phone = phone;
     }
 
-    public String getCity() {
+    public City getCity() {
         return city;
     }
 
-    public void setCity(String city) {
+    public void setCity(City city) {
         this.city = city;
     }
 
@@ -96,12 +105,12 @@ public class Artist {
         this.website = website;
     }
 
-    public String getSocialMedia() {
-        return socialMedia;
+    public List<ArtistSocial> getSocialMedias() {
+        return socialMedias;
     }
 
-    public void setSocialMedia(String socialMedia) {
-        this.socialMedia = socialMedia;
+    public void setSocialMedias(List<ArtistSocial> socialMedias) {
+        this.socialMedias = socialMedias;
     }
 
     public boolean isActive() {
@@ -124,6 +133,13 @@ public class Artist {
         this.artworks.add(artwork);
         if (artwork.getArtist() != this) {
             artwork.setArtist(this);
+        }
+    }
+
+    public void addSocialMedia(ArtistSocial social) {
+        this.socialMedias.add(social);
+        if (social.getArtist() != this) {
+            social.setArtist(this);
         }
     }
 
