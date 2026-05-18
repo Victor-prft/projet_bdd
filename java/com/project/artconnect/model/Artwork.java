@@ -2,22 +2,18 @@ package com.project.artconnect.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.math.BigDecimal;
 
 /**
  * Artwork entity representing a piece created by an artist.
  */
 public class Artwork {
-    private Integer id_artwork;
     private String title;
     private Integer creationYear;
     private String type; // painting, sculpture, etc.
     private String medium; // oil, watercolor, etc.
-    private BigDecimal width;
-    private BigDecimal height;
-    private BigDecimal depth;
+    private String dimensions;
     private String description;
-    private BigDecimal price;
+    private double price;
     private Status status; // FOR_SALE, SOLD, EXHIBITED
     private Artist artist;
     private List<ArtworkTag> tags = new ArrayList<>();
@@ -29,7 +25,7 @@ public class Artwork {
     public Artwork() {
     }
 
-    public Artwork(String title, Integer creationYear, String type, BigDecimal price, Artist artist) {
+    public Artwork(String title, Integer creationYear, String type, double price, Artist artist) {
         this.title = title;
         this.creationYear = creationYear;
         this.type = type;
@@ -39,14 +35,6 @@ public class Artwork {
     }
 
     // Getters and Setters
-    public Integer getId_artwork() {
-        return id_artwork;
-    }
-    public void setId_artwork(Integer id_artwork) {
-        this.id_artwork = id_artwork;
-    }
-
-
     public String getTitle() {
         return title;
     }
@@ -79,27 +67,13 @@ public class Artwork {
         this.medium = medium;
     }
 
-    public BigDecimal getWidth() {
-        return width;
-    }   
-
-    public void setWidth(BigDecimal width) {
-        this.width = width;
+    public String getDimensions() {
+        return dimensions;
     }
 
-    public BigDecimal getHeight() {
-        return height;
+    public void setDimensions(String dimensions) {
+        this.dimensions = dimensions;
     }
-    public void setHeight(BigDecimal height) {
-        this.height = height;
-    }
-    public BigDecimal getDepth() {
-        return depth;
-    }
-    public void setDepth(BigDecimal depth) {
-        this.depth = depth;
-    }
-
 
     public String getDescription() {
         return description;
@@ -109,11 +83,11 @@ public class Artwork {
         this.description = description;
     }
 
-    public BigDecimal getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -131,9 +105,6 @@ public class Artwork {
 
     public void setArtist(Artist artist) {
         this.artist = artist;
-        if (artist != null && !artist.getArtworks().contains(this)) {
-            artist.getArtworks().add(this);
-        }
     }
 
     public List<ArtworkTag> getTags() {

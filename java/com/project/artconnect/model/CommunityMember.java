@@ -4,20 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommunityMember {
-    private Integer id_member;
     private String name;
     private String email;
     private Integer birthYear;
     private String phone;
-    private City city;
+    private String city;
     private List<Discipline> favoriteDisciplines = new ArrayList<>();
-    private MembershipType membershipType; // free, premium
+    private String membershipType; // free, premium
     private List<Booking> bookings = new ArrayList<>();
     private List<Review> reviews = new ArrayList<>();
-
-    public enum MembershipType {
-        free, premium
-    }
 
     public CommunityMember() {
     }
@@ -25,15 +20,6 @@ public class CommunityMember {
     public CommunityMember(String name, String email) {
         this.name = name;
         this.email = email;
-        this.membershipType = MembershipType.free;
-    }
-
-    public Integer getId() {
-        return id_member;
-    }
- 
-    public void setId(Integer id) {
-        this.id_member = id;
     }
 
     public String getName() {
@@ -68,19 +54,11 @@ public class CommunityMember {
         this.phone = phone;
     }
 
-    public MembershipType getMembershipType() {
-        return membershipType;
-    }
-
-    public void setMembershipType(MembershipType membershipType) {
-        this.membershipType = membershipType;
-    }
-
-    public City getCity() {
+    public String getCity() {
         return city;
     }
 
-    public void setCity(City city) {
+    public void setCity(String city) {
         this.city = city;
     }
 
@@ -92,6 +70,13 @@ public class CommunityMember {
         this.favoriteDisciplines = favoriteDisciplines;
     }
 
+    public String getMembershipType() {
+        return membershipType;
+    }
+
+    public void setMembershipType(String membershipType) {
+        this.membershipType = membershipType;
+    }
 
     public List<Booking> getBookings() {
         return bookings;

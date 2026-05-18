@@ -1,16 +1,12 @@
 package com.project.artconnect.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Booking {
     private Workshop workshop;
     private CommunityMember member;
-    private LocalDate bookingDate;
-    private PaymentStatus paymentStatus; // PENDING, PAID, CANCELLED
-
-    public enum PaymentStatus {
-        PENDING, PAID, CANCELLED
-    }
+    private LocalDateTime bookingDate;
+    private String paymentStatus; // PENDING, PAID, CANCELLED
 
     public Booking() {
     }
@@ -18,8 +14,8 @@ public class Booking {
     public Booking(Workshop workshop, CommunityMember member) {
         this.workshop = workshop;
         this.member = member;
-        this.bookingDate = LocalDate.now();
-        this.paymentStatus = PaymentStatus.PENDING;
+        this.bookingDate = LocalDateTime.now();
+        this.paymentStatus = "PENDING";
     }
 
     public Workshop getWorkshop() {
@@ -38,19 +34,19 @@ public class Booking {
         this.member = member;
     }
 
-    public LocalDate getBookingDate() {
+    public LocalDateTime getBookingDate() {
         return bookingDate;
     }
 
-    public void setBookingDate(LocalDate bookingDate) {
+    public void setBookingDate(LocalDateTime bookingDate) {
         this.bookingDate = bookingDate;
     }
 
-    public PaymentStatus getPaymentStatus() {
+    public String getPaymentStatus() {
         return paymentStatus;
     }
 
-    public void setPaymentStatus(PaymentStatus paymentStatus) {
+    public void setPaymentStatus(String paymentStatus) {
         this.paymentStatus = paymentStatus;
     }
 }

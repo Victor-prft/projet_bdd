@@ -3,8 +3,8 @@ package com.project.artconnect.model;
 import java.time.LocalDate;
 
 public class Review {
-    private Artwork artwork;
     private CommunityMember reviewer;
+    private Artwork artwork;
     private int rating; // 1-5
     private String comment;
     private LocalDate reviewDate;
@@ -13,11 +13,11 @@ public class Review {
     }
 
     public Review(CommunityMember reviewer, Artwork artwork, int rating, String comment) {
-        this.artwork = artwork;
         this.reviewer = reviewer;
+        this.artwork = artwork;
         this.rating = rating;
         this.comment = comment;
-        
+        this.reviewDate = LocalDate.now();
     }
 
     public CommunityMember getReviewer() {
